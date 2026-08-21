@@ -83,10 +83,10 @@ export default function Sidebar({ activeView, onViewChange, teachers, orders, is
       {/* Sidebar Footer User Details */}
       <div className="sidebar-footer">
         <div className="user-profile">
-          <div className="avatar">JK</div>
+          <div className="avatar">AT</div>
           <div className="user-info">
-            <div className="name">Mr. Janardan Kumar</div>
-            <div className="role">Computer Teacher</div>
+            <div className="name">Mr. Anil Kumar Thakur</div>
+            <div className="role">{language === 'hi' ? 'प्रधानाध्यापक (Headmaster)' : 'Headmaster (HM)'}</div>
           </div>
         </div>
       </div>

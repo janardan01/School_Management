@@ -98,9 +98,9 @@ export default function DashboardView({
     .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
     .slice(0, 3);
 
-  // Determine current computer teacher workload details to show personalized highlights
-  const computerTeacher = teachers.find(t => t.id === "T1");
-  const compActiveTasks = orders.filter(o => o.assignedTeacherId === "T1" && o.status !== "Completed").length;
+  // Determine current Headmaster workload details to show personalized highlights
+  const headmaster = teachers.find(t => t.id === "T2" || t.email?.includes("headmaster")) || teachers[0];
+  const hmActiveTasks = headmaster ? orders.filter(o => o.assignedTeacherId === headmaster.id && o.status !== "Completed").length : 0;
 
   return (
     <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -118,20 +118,24 @@ export default function DashboardView({
           </p>
         </div>
         
-        {/* Personalized Computer Teacher Warning/Status */}
-        <div className="glass-panel" style={{ padding: '16px', background: compActiveTasks >= 2 ? 'var(--accent-rose-glow)' : 'rgba(255, 255, 255, 0.02)', borderColor: compActiveTasks >= 2 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-glass)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {compActiveTasks >= 2 ? (
+        {/* Personalized Headmaster Warning/Status */}
+        <div className="glass-panel" style={{ padding: '16px', background: hmActiveTasks >= 2 ? 'var(--accent-rose-glow)' : 'rgba(255, 255, 255, 0.02)', borderColor: hmActiveTasks >= 2 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-glass)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {hmActiveTasks >= 2 ? (
             <ShieldAlert size={36} color="var(--accent-rose)" />
           ) : (
             <TrendingUp size={36} color="var(--accent-cyan)" />
           )}
           <div>
-            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Your Admin Workload</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: compActiveTasks >= 2 ? 'var(--accent-rose)' : 'var(--accent-cyan)' }}>
-              {compActiveTasks} Active Tasks
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              {language === 'hi' ? 'प्रधानाध्यापक कार्यभार' : 'Headmaster Workload'}
+            </div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: hmActiveTasks >= 2 ? 'var(--accent-rose)' : 'var(--accent-cyan)' }}>
+              {hmActiveTasks} {language === 'hi' ? 'सक्रिय कार्य' : 'Active Tasks'}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-              {compActiveTasks >= 2 ? "Overloaded! Engine shielding you." : "Healthy capacity. Safe to assign."}
+              {hmActiveTasks >= 2 
+                ? (language === 'hi' ? "अधिक भार! इंजन अन्य शिक्षकों को अनुशंसित कर रहा है।" : "High load! Engine recommending other staff.") 
+                : (language === 'hi' ? "संतुलित क्षमता। असाइन करने के लिए सुरक्षित।" : "Healthy capacity. Safe to assign.")}
             </div>
           </div>
         </div>

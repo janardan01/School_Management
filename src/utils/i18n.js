@@ -36,8 +36,8 @@ export const translations = {
     low: "Low",
 
     // Header / App
-    welcomeTitle: "Namaste, Mr. Janardan Kumar",
-    welcomeSubtitle: "As Computer Teacher, you have automated task scheduling. The Smart Recommendation engine is active to distribute BRC/DEO administrative burdens.",
+    welcomeTitle: "Namaste, Headmaster (Mr. Anil Kumar Thakur)",
+    welcomeSubtitle: "As Headmaster, you have automated task scheduling. The Smart Recommendation engine is active to distribute BRC/DEO administrative burdens efficiently across all staff.",
     schoolStatus: "School Status: Operational",
     today: "Today:",
     selectLanguage: "Select Language",
@@ -252,8 +252,8 @@ export const translations = {
     low: "निम्न",
 
     // Header / App
-    welcomeTitle: "नमस्ते, श्री जनार्दन कुमार",
-    welcomeSubtitle: "कंप्यूटर शिक्षक के रूप में, आपने कार्य शेड्यूलिंग को स्वचालित कर दिया है। बीआरसी/डीईओ प्रशासनिक बोझ को बांटने के लिए स्मार्ट अनुशंसा इंजन सक्रिय है।",
+    welcomeTitle: "नमस्ते, प्रधानाध्यापक (श्री अनिल कुमार ठाकुर)",
+    welcomeSubtitle: "प्रधानाध्यापक के रूप में, आपने कार्य शेड्यूलिंग को स्वचालित कर दिया है। बीआरसी/डीईओ प्रशासनिक बोझ को सभी शिक्षकों में निष्पक्ष रूप से बांटने के लिए स्मार्ट अनुशंसा इंजन सक्रिय है।",
     schoolStatus: "स्कूल की स्थिति: सामान्य रूप से कार्यरत",
     today: "आज:",
     selectLanguage: "भाषा चुनें",

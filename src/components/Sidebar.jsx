@@ -7,7 +7,8 @@ import {
   CheckSquare, 
   Grid,
   X,
-  UserCheck
+  UserCheck,
+  BookOpen
 } from 'lucide-react';
 
 export default function Sidebar({ activeView, onViewChange, teachers, orders, isOpen, onClose, language, t }) {
@@ -78,6 +79,32 @@ export default function Sidebar({ activeView, onViewChange, teachers, orders, is
             </li>
           ))}
         </ul>
+
+        {/* User Manual Link */}
+        <div style={{ marginTop: '16px', padding: '0 4px' }}>
+          <a 
+            href="/manual.html" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px', 
+              padding: '10px 12px', 
+              borderRadius: '8px', 
+              background: 'rgba(0, 240, 255, 0.05)', 
+              border: '1px solid rgba(0, 240, 255, 0.2)', 
+              color: 'var(--accent-cyan)', 
+              textDecoration: 'none', 
+              fontSize: '0.85rem', 
+              fontWeight: 600,
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <BookOpen size={18} />
+            <span>{language === 'hi' ? 'मार्गदर्शिका (User Manual)' : 'User Manual / Guide'}</span>
+          </a>
+        </div>
       </nav>
 
       {/* Sidebar Footer User Details */}

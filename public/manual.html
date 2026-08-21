@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>उपयोगकर्ता मार्गदर्शिका | U.M.V. Kanhauli Portal Manual</title>
+  <style>
+    :root {
+      --primary: #00838f;
+      --primary-dark: #005662;
+      --accent: #d32f2f;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px 16px;
+    }
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    h1 { font-size: 1.8rem; color: #0f172a; margin-bottom: 8px; }
+    h2 { font-size: 1.4rem; color: var(--primary-dark); margin: 28px 0 14px; border-left: 4px solid var(--primary); padding-left: 12px; }
+    h3 { font-size: 1.15rem; color: #1e293b; margin: 20px 0 10px; }
+    p, li { font-size: 0.95rem; margin-bottom: 10px; color: #334155; }
+    ul, ol { padding-left: 24px; margin-bottom: 16px; }
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding: 16px;
+      background: #f1f5f9;
+      border-radius: 12px;
+      align-items: center;
+      justify-content: center;
+      position: sticky;
+      top: 16px;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-pdf { background: #d32f2f; color: #ffffff; }
+    .btn-pdf:hover { background: #b71c1c; }
+    .btn-wa { background: #25d366; color: #ffffff; }
+    .btn-wa:hover { background: #128c7e; }
+    .btn-copy { background: #0284c7; color: #ffffff; }
+    .btn-copy:hover { background: #0369a1; }
+    .card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th { background: #f1f5f9; font-weight: 600; color: #334155; }
+    kbd {
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      border: 1px solid #cbd5e1;
+    }
+    @media print {
+      body { background: #ffffff; padding: 0; }
+      .container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+      .action-bar { display: none !important; }
+      h2 { page-break-after: avoid; }
+      .card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Action Bar for Download / WhatsApp Sharing -->
+    <div class="action-bar">
+      <button class="btn btn-pdf" onclick="window.print()">
+        📄 PDF डाउनलोड / प्रिंट करें (Save PDF)
+      </button>
+      <button class="btn btn-wa" onclick="shareOnWhatsApp()">
+        📲 व्हाट्सएप पर शेयर करें (Share)
+      </button>
+      <button class="btn btn-copy" onclick="copyWhatsAppSummary()">
+        📋 व्हाट्सएप विवरण कॉपी करें (Copy)
+      </button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <span class="badge">आधिकारिक मार्गदर्शिका / Official Guide</span>
+      <h1>उच्च माध्यमिक विद्यालय कन्हौली (U.M.V. Kanhauli)</h1>
+      <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary);">Apex Task & Routine Automation Portal — Bilingual User Manual</p>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">प्रधानाध्यापक (श्री अनिल कुमार ठाकुर) एवं समस्त शिक्षकगण हेतु</p>
+    </div>
+
+    <!-- HINDI SECTION -->
+    <h2>🇮🇳 भाग 1: उपयोगकर्ता मार्गदर्शिका (हिंदी संस्करण)</h2>
+
+    <div class="card">
+      <h3>📌 1. परिचय एवं मुख्य उद्देश्य</h3>
+      <p>यह पोर्टल उच्च माध्यमिक विद्यालय कन्हौली के दैनिक शैक्षणिक रूटीन, बीआरसी/डीईओ (BRC/DEO) आदेशों के निष्पक्ष वितरण, दैनिक अवकाश (Leave) तथा प्रॉक्सी (Substitution) व्यवस्था को पूर्णतः स्वचालित एवं पारदर्शी बनाने हेतु तैयार किया गया है।</p>
+    </div>
+
+    <div class="card">
+      <h3>📊 2. मुख्य मॉड्यूल एवं संचालन विधि</h3>
+      
+      <h4>1. डैशबोर्ड (Dashboard View):</h4>
+      <ul>
+        <li><strong>प्रधानाध्यापक कार्यभार (Headmaster Workload):</strong> लंबित प्रशासनिक कार्यों की लाइव स्थिति।</li>
+        <li><strong>खाली शिक्षक खोजक (Free Teacher Finder):** दिन और घंटी चुनें; सिस्टम तुरंत बताएगा कि उस समय कौन-से शिक्षक क्लास में नहीं हैं और प्रॉक्सी लेने के लिए उपलब्ध हैं।</li>
+        <li><strong>डिजिटल नोटिस बोर्ड:** स्कूल के जरूरी नोटिस तुरंत पिन करें जो सभी शिक्षकों को दिखेंगे।</li>
+      </ul>
+
+      <h4>2. कक्षा रूटीन योजनाकार (Class Routine Planner):</h4>
+      <ul>
+        <li>कक्षा 6 से 12 तक का टाइम-टेबल देखें और किसी भी घंटी पर क्लिक करके शिक्षक/विषय तुरंत बदलें।</li>
+        <li><strong>दैनिक व्हाट्सएप प्रॉक्सी जेनरेटर:** रोज़ सुबह छुट्टी पर गए शिक्षकों की जगह 1-क्लिक में खाली शिक्षकों की प्रॉक्सी लगाकर व्हाट्सएप ग्रुप के लिए मैसेज बनाएं।</li>
+        <li><strong>प्रिंट / पीडीएफ:** किसी भी कक्षा का टाइम-टेबल 1-क्लिक में प्रिंट करें।</li>
+      </ul>
+
+      <h4>3. बीआरसी / डीईओ आदेश प्रबंधन (Official Orders Manager):</h4>
+      <ul>
+        <li><strong>स्क्रीनशॉट पेस्ट (Cmd+V Shortcut):** किसी भी सरकारी पत्र या व्हाट्सएप नोटिस का स्क्रीनशॉट लें और सीधे <kbd>Cmd+V</kbd> (Mac) या <kbd>Ctrl+V</kbd> (Windows) दबाएं। सिस्टम OCR से टेक्स्ट स्वतः पढ़ लेगा!</li>
+        <li><strong>स्मार्ट एआई शिक्षक असाइनमेंट:** सिस्टम 4 पैमानों (विषय, शिक्षण भार, पूर्व प्रशासनिक कार्य, और समय टकराव) के आधार पर सबसे उपयुक्त शिक्षक का नाम सुझाता है।</li>
+      </ul>
+
+      <h4>4. शिक्षक अवकाश एवं रिपोर्टिंग:</h4>
+      <ul>
+        <li>शिक्षक कार्ड पर छुट्टी दर्ज करते ही टाइम-टेबल और प्रॉक्सी अपने आप एडजस्ट हो जाते हैं।</li>
+        <li>कार्य पूरा होने पर शिक्षक पोर्टल से पूर्णता रिपोर्ट जमा कर सकते हैं।</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>⌨️ 3. त्वरित कीबोर्ड शॉर्टकट</h3>
+      <table>
+        <tr><th>कार्य (Action)</th><th>Mac शॉर्टकट</th><th>Windows शॉर्टकट</th></tr>
+        <tr><td>स्क्रीनशॉट लेना</td><td><kbd>Cmd + Shift + 4</kbd></td><td><kbd>Win + Shift + S</kbd></td></tr>
+        <tr><td>स्क्रीनशॉट पेस्ट करना</td><td><kbd>Cmd + V</kbd></td><td><kbd>Ctrl + V</kbd></td></tr>
+        <tr><td>प्रिंट / PDF सेव करना</td><td><kbd>Cmd + P</kbd></td><td><kbd>Ctrl + P</kbd></td></tr>
+      </table>
+    </div>
+
+    <hr style="margin: 32px 0; border: 0; border-top: 1px solid var(--border);">
+
+    <!-- ENGLISH SECTION -->
+    <h2>🇬🇧 Part 2: User Manual (English Edition)</h2>
+
+    <div class="card">
+      <h3>📌 1. Overview & Highlights</h3>
+      <ul>
+        <li><strong>Fair Workload Engine:</strong> Algorithmically distributes departmental tasks across all 11 teachers.</li>
+        <li><strong>Direct Clipboard Screenshot OCR (Cmd+V):</strong> Paste departmental letters directly into the portal for instant OCR text extraction.</li>
+        <li><strong>WhatsApp Proxy Generator:</strong> 1-click formatted notification generation for the school staff WhatsApp group.</li>
+        <li><strong>Offline-First Resilience:</strong> Functions seamlessly on local storage even during network drops.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>🏫 Staff Directory / शिक्षक सूची (11 Staff Members)</h3>
+      <table>
+        <tr><th>ID</th><th>Name / नाम</th><th>Subject / विषय</th><th>Role / पद</th></tr>
+        <tr><td><strong>T1</strong></td><td>Mr. Janardan Kumar</td><td>Computer Science</td><td>Computer Teacher / IT Coordinator</td></tr>
+        <tr><td><strong>T2</strong></td><td>Mr. Anil Kumar Thakur</td><td>Social Science</td><td>Headmaster (प्रधानाध्यापक)</td></tr>
+        <tr><td><strong>T3</strong></td><td>Mr. Ranjeet Kumar Thakur</td><td>Commerce</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T4</strong></td><td>Mr. Rajeev Kumar</td><td>Physics</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T5</strong></td><td>Mr. Raushan Kumar Yadav</td><td>Science</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T6</strong></td><td>Mr. Ajay Suman</td><td>Social Science</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T7</strong></td><td>Mr. Hari Om</td><td>Zoology</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T8</strong></td><td>Mr. Ankit Kumar Sah</td><td>Mathematics</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T9</strong></td><td>Mr. Ravi Bhushan Jha</td><td>Social Science</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T10</strong></td><td>Mrs. Nisha Choudhary</td><td>Entrepreneurship</td><td>Assistant Teacher</td></tr>
+        <tr><td><strong>T11</strong></td><td>Mr. Sumit Kumar</td><td>Social Science</td><td>Assistant Teacher</td></tr>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 32px; color: var(--text-muted); font-size: 0.85rem;">
+      Uchh Madhyamik Vidyalay Kanhauli (उ.मा.वि. कन्हौली) — All Rights Reserved.
+    </div>
+
+  </div>
+
+  <script>
+    const waText = `🏫 *उच्च माध्यमिक विद्यालय कन्हौली (U.M.V. Kanhauli)*\n📋 *Apex Task & Routine Automation Portal — उपयोगकर्ता मार्गदर्शिका*\n\nआदरणीय प्रधानाध्यापक महोदय एवं शिक्षकगण,\n\nविद्यालय के नए डिजिटल पोर्टल की मुख्य विशेषताएं एवं संचालन गाइड:\n\n1️⃣ *डैशबोर्ड:* रीयल-टाइम में देखें कौन से शिक्षक खाली हैं (Free Teacher Finder) एवं डिजिटल नोटिस बोर्ड।\n2️⃣ *कक्षा रूटीन एवं प्रॉक्सी:* कक्षा 6 से 12 तक की समय-सारणी एवं 1-क्लिक में व्हाट्सएप प्रॉक्सी जनरेटर।\n3️⃣ *BRC/DEO आदेश प्रबंधन:* किसी भी पत्र का स्क्रीनशॉट लेकर सीधे Cmd+V से पेस्ट करें (OCR ऑटो-रीडर) एवं AI द्वारा निष्पक्ष कार्य आवंटन।\n4️⃣ *द्विभाषी (Bilingual):* एक क्लिक में हिंदी व अंग्रेजी में उपलब्ध।\n\n🌐 *लाइव पोर्टल लिंक:* ${window.location.origin}\n📄 *पूर्ण मार्गदर्शिका:* ${window.location.href}`;
+
+    function shareOnWhatsApp() {
+      const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(waText);
+      window.open(url, "_blank");
+    }
+
+    function copyWhatsAppSummary() {
+      navigator.clipboard.writeText(waText).then(() => {
+        alert("✅ व्हाट्सएप संदेश सफलतापूर्वक कॉपी हो गया है! अब आप इसे किसी भी व्हाट्सएप चैट में पेस्ट कर सकते हैं।");
+      }).catch(() => {
+        alert("कॉपी करने के लिए कृपया टेक्स्ट का चयन करें।");
+      });
+    }
+  </script>
+</body>
+</html>

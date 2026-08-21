@@ -1,6 +1,6 @@
 // Apex Task & Schedule Coordinator - Orders Manager Component
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FileText, 
   Plus, 
@@ -8,15 +8,17 @@ import {
   Calendar, 
   AlertTriangle, 
   CheckCircle, 
-  Sparkles,
-  ArrowRight,
-  TrendingUp,
-  UserCheck,
-  CheckSquare,
-  Bookmark,
-  ChevronRight,
-  Clock,
-  Send
+  Sparkles, 
+  ArrowRight, 
+  TrendingUp, 
+  UserCheck, 
+  CheckSquare, 
+  Bookmark, 
+  ChevronRight, 
+  Clock, 
+  Send,
+  Clipboard,
+  Image as ImageIcon
 } from 'lucide-react';
 import { 
   getRecommendations, 
@@ -244,8 +246,10 @@ export default function OrdersManager({
 
   // Process selected or pasted image file
   const processImageFile = (file) => {
-    if (!file.type.startsWith("image/")) {
-      setOcrError("Unsupported format. Please select an image file (PNG, JPG).");
+    if (!file || !file.type.startsWith("image/")) {
+      setOcrError(language === 'hi' 
+        ? "असमर्थित प्रारूप। कृपया एक छवि फ़ाइल (PNG, JPG, WebP) चुनें।"
+        : "Unsupported format. Please select an image file (PNG, JPG, WebP).");
       return;
     }
     setImageFile(file);
@@ -259,7 +263,71 @@ export default function OrdersManager({
     reader.readAsDataURL(file);
   };
 
-  // Clipboard paste event listener callback
+  // Global window paste listener for Cmd+V / Ctrl+V when modal is open
+  useEffect(() => {
+    if (!showAddModal) return;
+
+    const handleGlobalPaste = (e) => {
+      // If typing in input/textarea and not in image mode, do not intercept text
+      const target = e.target;
+      const isTextInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
+
+      const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image/") !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            setInputMode("image");
+            processImageFile(file);
+            e.preventDefault();
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => {
+      window.removeEventListener('paste', handleGlobalPaste);
+    };
+  }, [showAddModal, language]);
+
+  // Direct clipboard read button using navigator.clipboard
+  const handleDirectClipboardPaste = async () => {
+    setOcrError("");
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.read) {
+        document.getElementById('image-file-input')?.click();
+        return;
+      }
+      const clipboardItems = await navigator.clipboard.read();
+      let foundImage = false;
+      for (const item of clipboardItems) {
+        const imageType = item.types.find(t => t.startsWith('image/'));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          const file = new File([blob], `screenshot_${Date.now()}.png`, { type: imageType });
+          processImageFile(file);
+          foundImage = true;
+          break;
+        }
+      }
+      if (!foundImage) {
+        setOcrError(language === 'hi' 
+          ? "क्लिपबोर्ड में कोई छवि/स्क्रीनशॉट नहीं मिला। कृपया पहले स्क्रीनशॉट लें या Cmd+V दबाएं।"
+          : "No image found in clipboard. Please take a screenshot (Cmd+Shift+4) or press Cmd+V directly.");
+      }
+    } catch (err) {
+      console.warn("Direct clipboard read access:", err);
+      setOcrError(language === 'hi'
+        ? "कृपया सीधे अपने कीबोर्ड पर Cmd+V / Ctrl+V दबाएं या नीचे फ़ाइल चुनने के लिए क्लिक करें।"
+        : "Please press Cmd+V / Ctrl+V on your keyboard directly or click below to select a file.");
+    }
+  };
+
+  // Clipboard paste event listener callback for specific container
   const handleImagePaste = (e) => {
     const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
     if (!items) return;
@@ -267,9 +335,11 @@ export default function OrdersManager({
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf("image/") !== -1) {
         const file = items[i].getAsFile();
-        processImageFile(file);
-        e.preventDefault();
-        break;
+        if (file) {
+          processImageFile(file);
+          e.preventDefault();
+          break;
+        }
       }
     }
   };
@@ -916,7 +986,38 @@ export default function OrdersManager({
                 onPaste={handleImagePaste}
               >
                 <div className="form-group">
-                  <label className="form-label">{language === 'hi' ? 'क्लिपबोर्ड से स्क्रीनशॉट पेस्ट करें (Cmd+V / Ctrl+V) या फ़ाइल अपलोड करें:' : 'Paste screenshot from clipboard (Cmd+V / Ctrl+V) or upload file:'}</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                    <label className="form-label" style={{ margin: 0 }}>
+                      {language === 'hi' ? 'क्लिपबोर्ड से स्क्रीनशॉट पेस्ट करें (Cmd+V / Ctrl+V):' : 'Paste screenshot from clipboard (Cmd+V / Ctrl+V):'}
+                    </label>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleDirectClipboardPaste}
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '6px', 
+                        padding: '6px 12px', 
+                        fontSize: '0.75rem',
+                        background: 'rgba(0, 240, 255, 0.08)',
+                        borderColor: 'rgba(0, 240, 255, 0.3)',
+                        color: 'var(--accent-cyan)'
+                      }}
+                      title="Directly read image from clipboard"
+                    >
+                      <Clipboard size={14} />
+                      <span>{language === 'hi' ? 'क्लिपबोर्ड से पेस्ट करें' : 'Paste from Clipboard'}</span>
+                      <kbd style={{ background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-glass)' }}>Cmd+V</kbd>
+                    </button>
+                  </div>
+
+                  {ocrError && (
+                    <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: 'var(--accent-rose)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <AlertTriangle size={16} />
+                      <span>{ocrError}</span>
+                    </div>
+                  )}
                   
                   {ocrLoading ? (
                     <div className="glass-panel" style={{ padding: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', borderStyle: 'dashed', borderColor: 'var(--accent-cyan)' }}>
@@ -930,18 +1031,21 @@ export default function OrdersManager({
                       <div style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>{ocrProgress}% {language === 'hi' ? 'पूर्ण (हिंदी और अंग्रेजी पाठ का पठन)' : 'complete (Reading English & Hindi text)'}</div>
                     </div>
                   ) : imagePreview ? (
-                    <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', border: '1px solid var(--border-glass-hover)', background: 'rgba(255,255,255,0.01)' }}>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>{language === 'hi' ? 'स्क्रीनशॉट सफलतापूर्वक लोड हुआ!' : 'Screenshot Captured Successfully!'}</div>
+                    <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', border: '1px solid var(--accent-cyan)', background: 'rgba(0, 240, 255, 0.02)' }}>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CheckCircle size={16} />
+                        {language === 'hi' ? 'स्क्रीनशॉट सफलतापूर्वक लोड हुआ!' : 'Screenshot Captured Successfully!'}
+                      </div>
                       <img 
                         src={imagePreview} 
-                        alt="Clipboard screenshot caught" 
-                        style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '8px', border: '1px solid var(--border-glass)', boxShadow: '0 0 15px rgba(0,0,0,0.5)' }} 
+                        alt="Clipboard screenshot preview" 
+                        style={{ maxWidth: '100%', maxHeight: '220px', borderRadius: '8px', border: '1px solid var(--border-glass)', boxShadow: '0 0 20px rgba(0,0,0,0.6)' }} 
                       />
                       <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '4px' }}>
                         <button 
                           type="button" 
                           className="btn btn-secondary" 
-                          style={{ flexGrow: 1, padding: '8px', fontSize: '0.8rem' }}
+                          style={{ flexGrow: 1, padding: '10px', fontSize: '0.85rem' }}
                           onClick={() => { setImageFile(null); setImagePreview(null); }}
                         >
                           {language === 'hi' ? 'छवि साफ करें' : 'Clear Image'}
@@ -949,16 +1053,24 @@ export default function OrdersManager({
                         <button 
                           type="button" 
                           className="btn btn-primary" 
-                          style={{ flexGrow: 2, padding: '8px', fontSize: '0.8rem' }}
+                          style={{ flexGrow: 2, padding: '10px', fontSize: '0.85rem', background: 'var(--accent-cyan)', color: 'var(--bg-dark)', fontWeight: 700 }}
                           onClick={handleOcrRun}
                         >
-                          <Sparkles size={14} /> {language === 'hi' ? 'स्क्रीन ओसीआर रीडर चलाएं' : 'Run Screen OCR Reader'}
+                          <Sparkles size={16} /> {language === 'hi' ? 'स्क्रीन ओसीआर रीडर चलाएं (हिंदी + English)' : 'Run Screen OCR Reader (Hindi + Eng)'}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div 
                       className="glass-panel" 
+                      tabIndex={0}
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                      onDrop={(e) => { 
+                        e.preventDefault(); 
+                        e.stopPropagation(); 
+                        const file = e.dataTransfer?.files?.[0]; 
+                        if (file) processImageFile(file); 
+                      }}
                       style={{ 
                         padding: '40px 32px', 
                         textAlign: 'center', 
@@ -967,19 +1079,28 @@ export default function OrdersManager({
                         alignItems: 'center', 
                         gap: '12px', 
                         borderStyle: 'dashed', 
-                        borderColor: 'rgba(255, 255, 255, 0.15)',
+                        borderColor: 'rgba(0, 240, 255, 0.3)',
+                        background: 'rgba(0, 240, 255, 0.01)',
                         cursor: 'pointer',
-                        position: 'relative'
+                        position: 'relative',
+                        outline: 'none'
                       }}
                       onClick={() => document.getElementById('image-file-input').click()}
                     >
-                      <span style={{ fontSize: '2.5rem' }}>📸</span>
-                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>
-                        {language === 'hi' ? 'स्क्रीनशॉट चुनने के लिए क्लिक करें या Cmd+V / Ctrl+V दबाएं' : 'Click to Select Screenshot or Press Cmd+V / Ctrl+V'}
+                      <span style={{ fontSize: '2.8rem' }}>📸</span>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1.05rem' }}>
+                        {language === 'hi' ? 'स्क्रीनशॉट चुनने के लिए क्लिक करें या सीधे Cmd+V / Ctrl+V दबाएं' : 'Click to Browse Screenshot or Press Cmd+V / Ctrl+V'}
                       </div>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: '320px', margin: '0 auto', lineHeight: '1.4' }}>
-                        {language === 'hi' ? 'इस विंडो के भीतर क्लिक करें और कॉपी की गई छवि पेस्ट करें, या ड्रैग और ड्रॉप करें!' : 'Click inside this window and paste a copied screenshot image directly, or drag PNG/JPG files here!'}
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
+                        {language === 'hi' 
+                          ? 'Mac पर Cmd+Shift+4 दबाकर स्क्रीनशॉट लें, फिर सीधे यहाँ Cmd+V दबाएं या ऊपर "क्लिपबोर्ड से पेस्ट करें" बटन पर क्लिक करें!' 
+                          : 'Take a screenshot (Cmd+Shift+4 on Mac), then press Cmd+V directly here or click the "Paste from Clipboard" button above!'}
                       </p>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
+                        <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: 'var(--accent-cyan)', border: '1px solid var(--border-glass)' }}>
+                          ⌨️ Shortcut: <strong>Cmd + V</strong> (Mac) / <strong>Ctrl + V</strong> (Windows)
+                        </span>
+                      </div>
                       <input 
                         id="image-file-input"
                         type="file" 

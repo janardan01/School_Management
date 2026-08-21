@@ -70,7 +70,7 @@ export default function DashboardView({
   teachers.forEach(t => {
     totalTeachingPeriods += calculateTeacherTeachingPeriods(routine, t.id);
   });
-  const avgTeachingPeriods = (totalTeachingPeriods / totalTeachersCount).toFixed(1);
+  const avgTeachingPeriods = totalTeachersCount > 0 ? (totalTeachingPeriods / totalTeachersCount).toFixed(1) : "0.0";
 
   // Identify teachers free at the selected day/period
   const getTeacherAvailability = () => {

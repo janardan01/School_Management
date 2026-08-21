@@ -19,15 +19,104 @@ import {
   PERIODS
 } from './utils/SmartAssigner';
 
+// Helper functions for initial data loading with fallback
+const getInitialTeachers = () => {
+  const stored = localStorage.getItem('apex_teachers_watson_dayshift');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      // ignore
+    }
+  }
+  localStorage.setItem('apex_teachers_watson_dayshift', JSON.stringify(DEFAULT_TEACHERS));
+  return DEFAULT_TEACHERS;
+};
+
+const getInitialRoutine = () => {
+  const stored = localStorage.getItem('apex_routine_watson_dayshift');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) return parsed;
+    } catch {
+      // ignore
+    }
+  }
+  const initial = generateDefaultRoutine();
+  localStorage.setItem('apex_routine_watson_dayshift', JSON.stringify(initial));
+  return initial;
+};
+
+const getInitialOrders = () => {
+  const stored = localStorage.getItem('apex_orders_watson_dayshift');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      // ignore
+    }
+  }
+  localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(DEFAULT_ORDERS));
+  return DEFAULT_ORDERS;
+};
+
+const getInitialLeaves = () => {
+  const stored = localStorage.getItem('apex_leaves_watson_dayshift');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+};
+
+const getInitialNotices = () => {
+  const stored = localStorage.getItem('apex_bulletin_notices');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      // ignore
+    }
+  }
+  const defaultNotices = [
+    { id: "NT-001", content: "DEO Office Order: Complete U-DISE+ student profile submissions urgently by Friday.", category: "Official", datePinned: new Date().toISOString().split('T')[0] },
+    { id: "NT-002", content: "Weekly Staff Meeting on Saturday at 4:15 PM in Staff Room.", category: "General", datePinned: new Date().toISOString().split('T')[0] }
+  ];
+  localStorage.setItem('apex_bulletin_notices', JSON.stringify(defaultNotices));
+  return defaultNotices;
+};
+
+const getInitialProxies = () => {
+  const stored = localStorage.getItem('apex_proxy_records');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+};
+
 export default function App() {
   const [activeView, setActiveView] = useState('dashboard');
-  const [teachers, setTeachers] = useState([]);
-  const [routine, setRoutine] = useState({});
-  const [orders, setOrders] = useState([]);
-  const [leaves, setLeaves] = useState([]);
-  const [notices, setNotices] = useState([]);
-  const [proxyRecords, setProxyRecords] = useState([]);
+  const [teachers, setTeachers] = useState(getInitialTeachers);
+  const [routine, setRoutine] = useState(getInitialRoutine);
+  const [orders, setOrders] = useState(getInitialOrders);
+  const [leaves, setLeaves] = useState(getInitialLeaves);
+  const [notices, setNotices] = useState(getInitialNotices);
+  const [proxyRecords, setProxyRecords] = useState(getInitialProxies);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [dbStatus, setDbStatus] = useState('connecting'); // 'online' | 'offline' | 'connecting'
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('apex_portal_lang') || 'en';
   });
@@ -46,13 +135,19 @@ export default function App() {
       // 1. Fetch Teachers
       const { data: dbTeachers, error: tErr } = await supabase.from('teachers').select('*').order('id');
       if (tErr) throw tErr;
-      if (dbTeachers) setTeachers(dbTeachers);
+      if (dbTeachers && dbTeachers.length > 0) {
+        setTeachers(dbTeachers);
+        localStorage.setItem('apex_teachers_watson_dayshift', JSON.stringify(dbTeachers));
+      } else if (dbTeachers && dbTeachers.length === 0) {
+        // Table exists but is empty, seed with default teachers
+        await supabase.from('teachers').insert(DEFAULT_TEACHERS);
+      }
 
       // 2. Fetch Routine
       const { data: slots, error: rErr } = await supabase.from('routine_slots').select('*');
       if (rErr) throw rErr;
-      const initialRoutine = generateDefaultRoutine();
-      if (slots) {
+      if (slots && slots.length > 0) {
+        const initialRoutine = generateDefaultRoutine();
         slots.forEach(slot => {
           if (initialRoutine[slot.class_id] && initialRoutine[slot.class_id][slot.day]) {
             initialRoutine[slot.class_id][slot.day][slot.period_id] = {
@@ -61,35 +156,46 @@ export default function App() {
             };
           }
         });
+        setRoutine(initialRoutine);
+        localStorage.setItem('apex_routine_watson_dayshift', JSON.stringify(initialRoutine));
       }
-      setRoutine(initialRoutine);
 
       // 3. Fetch Orders
       const { data: dbOrders, error: oErr } = await supabase.from('orders').select('*').order('id');
       if (oErr) throw oErr;
-      if (dbOrders) setOrders(dbOrders);
+      if (dbOrders && dbOrders.length > 0) {
+        setOrders(dbOrders);
+        localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(dbOrders));
+      } else if (dbOrders && dbOrders.length === 0) {
+        await supabase.from('orders').insert(DEFAULT_ORDERS);
+      }
 
       // 4. Fetch Leaves
       const { data: dbLeaves, error: lErr } = await supabase.from('leaves').select('*');
       if (lErr) throw lErr;
       if (dbLeaves) {
-        setLeaves(dbLeaves.map(l => ({
+        const mappedLeaves = dbLeaves.map(l => ({
           id: l.id,
           teacherId: l.teacherId,
           day: l.day
-        })));
+        }));
+        setLeaves(mappedLeaves);
+        localStorage.setItem('apex_leaves_watson_dayshift', JSON.stringify(mappedLeaves));
       }
 
       // 5. Fetch Notices
       const { data: dbNotices, error: nErr } = await supabase.from('notices').select('*').order('id', { ascending: false });
       if (nErr) throw nErr;
-      if (dbNotices) setNotices(dbNotices);
+      if (dbNotices && dbNotices.length > 0) {
+        setNotices(dbNotices);
+        localStorage.setItem('apex_bulletin_notices', JSON.stringify(dbNotices));
+      }
 
       // 6. Fetch Proxy Records
       const { data: dbProxies, error: pErr } = await supabase.from('proxy_records').select('*').order('id', { ascending: false });
       if (pErr) throw pErr;
       if (dbProxies) {
-        setProxyRecords(dbProxies.map(p => ({
+        const mappedProxies = dbProxies.map(p => ({
           id: p.id,
           absentTeacherId: p.absentTeacherId,
           substituteTeacherId: p.substituteTeacherId,
@@ -97,10 +203,15 @@ export default function App() {
           periodId: p.periodId,
           classId: p.classId,
           date: p.date
-        })));
+        }));
+        setProxyRecords(mappedProxies);
+        localStorage.setItem('apex_proxy_records', JSON.stringify(mappedProxies));
       }
+
+      setDbStatus('online');
     } catch (err) {
-      console.error("Error loading data from Supabase:", err);
+      console.warn("Supabase unreachable or paused. Operating in LocalStorage offline mode:", err);
+      setDbStatus('offline');
     }
   };
 
@@ -110,110 +221,25 @@ export default function App() {
       fetchDataFromSupabase();
 
       // Realtime subscription setup
-      const channel = supabase.channel('schema-db-changes')
-        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-          fetchDataFromSupabase();
-        })
-        .subscribe();
+      try {
+        const channel = supabase.channel('schema-db-changes')
+          .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+            fetchDataFromSupabase();
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              setDbStatus('online');
+            }
+          });
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      } catch (e) {
+        console.warn("Realtime subscription failed:", e);
+      }
     } else {
-      // 1. Teachers
-      const storedTeachers = localStorage.getItem('apex_teachers_watson_dayshift');
-      if (storedTeachers) {
-        const parsedTeachers = JSON.parse(storedTeachers);
-        let migrated = false;
-        const updated = parsedTeachers.map(t => {
-          if (t.id === "T6" && t.subject !== "Social Science") {
-            migrated = true;
-            return { ...t, subject: "Social Science", email: "ajay.social@school.edu" };
-          }
-          if (t.id === "T9" && t.subject !== "Social Science") {
-            migrated = true;
-            return { ...t, subject: "Social Science", email: "ravi.social@school.edu" };
-          }
-          return t;
-        });
-
-        if (migrated) {
-          localStorage.setItem('apex_teachers_watson_dayshift', JSON.stringify(updated));
-          setTeachers(updated);
-        } else {
-          setTeachers(parsedTeachers);
-        }
-      } else {
-        localStorage.setItem('apex_teachers_watson_dayshift', JSON.stringify(DEFAULT_TEACHERS));
-        setTeachers(DEFAULT_TEACHERS);
-      }
-
-      // 2. Routine Schedule
-      const storedRoutine = localStorage.getItem('apex_routine_watson_dayshift');
-      if (storedRoutine) {
-        const parsedRoutine = JSON.parse(storedRoutine);
-        let migrated = false;
-        Object.keys(parsedRoutine).forEach(cls => {
-          if (!parsedRoutine[cls]["Saturday"]) {
-            migrated = true;
-            parsedRoutine[cls]["Saturday"] = {};
-            PERIODS.forEach(p => {
-              parsedRoutine[cls]["Saturday"][p.id] = { teacherId: "", subject: "" };
-            });
-          }
-        });
-
-        if (migrated) {
-          localStorage.setItem('apex_routine_watson_dayshift', JSON.stringify(parsedRoutine));
-          setRoutine(parsedRoutine);
-        } else {
-          setRoutine(parsedRoutine);
-        }
-      } else {
-        const initialRoutine = generateDefaultRoutine();
-        localStorage.setItem('apex_routine_watson_dayshift', JSON.stringify(initialRoutine));
-        setRoutine(initialRoutine);
-      }
-
-      // 3. Official Orders
-      const storedOrders = localStorage.getItem('apex_orders_watson_dayshift');
-      if (storedOrders) {
-        setOrders(JSON.parse(storedOrders));
-      } else {
-        localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(DEFAULT_ORDERS));
-        setOrders(DEFAULT_ORDERS);
-      }
-
-      // 4. Leaves database
-      const storedLeaves = localStorage.getItem('apex_leaves_watson_dayshift');
-      if (storedLeaves) {
-        setLeaves(JSON.parse(storedLeaves));
-      } else {
-        localStorage.setItem('apex_leaves_watson_dayshift', JSON.stringify([]));
-        setLeaves([]);
-      }
-
-      // 5. Notices (Bulletin Board)
-      const storedNotices = localStorage.getItem('apex_bulletin_notices');
-      if (storedNotices) {
-        setNotices(JSON.parse(storedNotices));
-      } else {
-        const defaultNotices = [
-          { id: "NT-001", content: "DEO Office Order: Complete U-DISE+ student profile submissions urgently by Friday.", category: "Official", datePinned: new Date().toISOString().split('T')[0] },
-          { id: "NT-002", content: "Weekly Staff Meeting on Saturday at 4:15 PM in Staff Room.", category: "General", datePinned: new Date().toISOString().split('T')[0] }
-        ];
-        localStorage.setItem('apex_bulletin_notices', JSON.stringify(defaultNotices));
-        setNotices(defaultNotices);
-      }
-
-      // 6. Proxy records
-      const storedProxies = localStorage.getItem('apex_proxy_records');
-      if (storedProxies) {
-        setProxyRecords(JSON.parse(storedProxies));
-      } else {
-        localStorage.setItem('apex_proxy_records', JSON.stringify([]));
-        setProxyRecords([]);
-      }
+      setDbStatus('offline');
     }
   }, []);
 
@@ -225,6 +251,7 @@ export default function App() {
     
     updatedRoutine[classId][day][periodId] = { teacherId, subject };
     setRoutine(updatedRoutine);
+    localStorage.setItem('apex_routine_watson_dayshift', JSON.stringify(updatedRoutine));
 
     if (isSupabaseConfigured) {
       try {
@@ -238,8 +265,6 @@ export default function App() {
       } catch (err) {
         console.error("Error updating routine in Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_routine_watson_dayshift', JSON.stringify(updatedRoutine));
     }
   };
 
@@ -248,6 +273,7 @@ export default function App() {
     const newLeave = { id: `LV-${Date.now()}`, teacherId, day };
     const newLeaves = [...leaves, newLeave];
     setLeaves(newLeaves);
+    localStorage.setItem('apex_leaves_watson_dayshift', JSON.stringify(newLeaves));
 
     if (isSupabaseConfigured) {
       try {
@@ -259,14 +285,13 @@ export default function App() {
       } catch (err) {
         console.error("Error adding leave to Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_leaves_watson_dayshift', JSON.stringify(newLeaves));
     }
   };
 
   const handleRemoveLeave = async (leaveId) => {
     const newLeaves = leaves.filter(l => l.id !== leaveId);
     setLeaves(newLeaves);
+    localStorage.setItem('apex_leaves_watson_dayshift', JSON.stringify(newLeaves));
 
     if (isSupabaseConfigured) {
       try {
@@ -274,8 +299,6 @@ export default function App() {
       } catch (err) {
         console.error("Error removing leave from Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_leaves_watson_dayshift', JSON.stringify(newLeaves));
     }
   };
 
@@ -288,6 +311,7 @@ export default function App() {
     };
     const updatedNotices = [newNotice, ...notices];
     setNotices(updatedNotices);
+    localStorage.setItem('apex_bulletin_notices', JSON.stringify(updatedNotices));
 
     if (isSupabaseConfigured) {
       try {
@@ -300,14 +324,13 @@ export default function App() {
       } catch (err) {
         console.error("Error adding notice to Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_bulletin_notices', JSON.stringify(updatedNotices));
     }
   };
 
   const handleRemoveNotice = async (noticeId) => {
     const updatedNotices = notices.filter(n => n.id !== noticeId);
     setNotices(updatedNotices);
+    localStorage.setItem('apex_bulletin_notices', JSON.stringify(updatedNotices));
 
     if (isSupabaseConfigured) {
       try {
@@ -315,8 +338,6 @@ export default function App() {
       } catch (err) {
         console.error("Error removing notice from Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_bulletin_notices', JSON.stringify(updatedNotices));
     }
   };
 
@@ -329,6 +350,7 @@ export default function App() {
       return t;
     });
     setTeachers(updatedTeachers);
+    localStorage.setItem('apex_teachers_watson_dayshift', JSON.stringify(updatedTeachers));
 
     if (isSupabaseConfigured) {
       try {
@@ -336,8 +358,6 @@ export default function App() {
       } catch (err) {
         console.error("Error updating teacher in Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_teachers_watson_dayshift', JSON.stringify(updatedTeachers));
     }
   };
 
@@ -354,6 +374,7 @@ export default function App() {
     };
     const updated = [newRecord, ...proxyRecords];
     setProxyRecords(updated);
+    localStorage.setItem('apex_proxy_records', JSON.stringify(updated));
 
     if (isSupabaseConfigured) {
       try {
@@ -369,8 +390,6 @@ export default function App() {
       } catch (err) {
         console.error("Error adding proxy record to Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_proxy_records', JSON.stringify(updated));
     }
   };
 
@@ -397,6 +416,7 @@ export default function App() {
 
     const updatedOrders = [newOrder, ...orders];
     setOrders(updatedOrders);
+    localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(updatedOrders));
 
     if (isSupabaseConfigured) {
       try {
@@ -418,8 +438,6 @@ export default function App() {
       } catch (err) {
         console.error("Error adding order to Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(updatedOrders));
     }
   };
 
@@ -437,6 +455,7 @@ export default function App() {
     });
 
     setOrders(updatedOrders);
+    localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(updatedOrders));
 
     if (isSupabaseConfigured) {
       try {
@@ -447,8 +466,6 @@ export default function App() {
       } catch (err) {
         console.error("Error assigning teacher in Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(updatedOrders));
     }
   };
 
@@ -479,6 +496,7 @@ export default function App() {
     });
 
     setOrders(updatedOrders);
+    localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(updatedOrders));
 
     if (isSupabaseConfigured) {
       try {
@@ -489,8 +507,6 @@ export default function App() {
       } catch (err) {
         console.error("Error submitting report in Supabase:", err);
       }
-    } else {
-      localStorage.setItem('apex_orders_watson_dayshift', JSON.stringify(updatedOrders));
     }
   };
 
